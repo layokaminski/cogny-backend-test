@@ -1,6 +1,8 @@
 const { DATABASE_SCHEMA, DATABASE_URL, SHOW_PG_MONITOR } = require('./config');
 const massive = require('massive');
 const monitor = require('pg-monitor');
+const { fetchData } = require('./utils/fetchData');
+const { formatDatabase } = require('./utils/formatDatabase');
 
 // Call start
 (async () => {
@@ -64,11 +66,11 @@ const monitor = require('pg-monitor');
 
     try {
         await migrationUp();
-
+        const response = await fetchData();
+        const formatedDatabase = formatDatabase(response);
+        
         //exemplo de insert
-        const result1 = await db[DATABASE_SCHEMA].api_data.insert({
-            doc_record: { 'a': 'b' },
-        })
+        const result1 = await db[DATABASE_SCHEMA].api_data.insert(formatedDatabase);
         console.log('result1 >>>', result1);
 
         //exemplo select
