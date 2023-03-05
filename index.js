@@ -4,6 +4,7 @@ const monitor = require('pg-monitor');
 const { fetchData } = require('./utils/fetchData');
 const { formatDatabase } = require('./utils/formatDatabase');
 const { calculateTotalPopulation } = require('./utils/calculateTotalPopulation');
+const { queryCalculateTotalPopulation } = require('./utils/queryCalculateTotalPopulation');
 
 // Call start
 (async () => {
@@ -79,11 +80,13 @@ const { calculateTotalPopulation } = require('./utils/calculateTotalPopulation')
             return data;
         }).catch(error => {
             console.log(error);
-        });
+        });;
 
         const totalPopulationByNode = calculateTotalPopulation(data);
+        const totalPopulationByQuery = await queryCalculateTotalPopulation(db);
 
         console.log(`População total dos anos 2020, 2019 e 2018: ${totalPopulationByNode} pessoas`);
+        console.log(`População total dos anos 2020, 2019 e 2018: ${totalPopulationByQuery} pessoas`);
     } catch (e) {
         console.log(e.message)
     } finally {
