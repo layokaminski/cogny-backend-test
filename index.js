@@ -1,6 +1,10 @@
 const { DATABASE_SCHEMA, DATABASE_URL, SHOW_PG_MONITOR } = require('./config');
 const massive = require('massive');
 const monitor = require('pg-monitor');
+const { fetchData } = require('./utils/fetchData');
+const { formatDatabase } = require('./utils/formatDatabase');
+const { calculateTotalPopulation } = require('./utils/calculateTotalPopulation');
+const { queryCalculateTotalPopulation } = require('./utils/queryCalculateTotalPopulation');
 
 // Call start
 (async () => {
@@ -64,19 +68,25 @@ const monitor = require('pg-monitor');
 
     try {
         await migrationUp();
+        await db[DATABASE_SCHEMA].api_data.destroy({});
+        const response = await fetchData();
+        const formatedDatabase = formatDatabase(response);
 
-        //exemplo de insert
-        const result1 = await db[DATABASE_SCHEMA].api_data.insert({
-            doc_record: { 'a': 'b' },
-        })
-        console.log('result1 >>>', result1);
+        await db[DATABASE_SCHEMA].api_data.insert(formatedDatabase);
 
-        //exemplo select
-        const result2 = await db[DATABASE_SCHEMA].api_data.find({
+        const data = await db[DATABASE_SCHEMA].api_data.find({
             is_active: true
-        });
-        console.log('result2 >>>', result2);
+        }).then((data) => {
+            return data;
+        }).catch(error => {
+            console.log(error);
+        });;
 
+        const totalPopulationByNode = calculateTotalPopulation(data);
+        const totalPopulationByQuery = await queryCalculateTotalPopulation(db);
+
+        console.log(`População total dos anos 2020, 2019 e 2018: ${totalPopulationByNode} pessoas`);
+        console.log(`População total dos anos 2020, 2019 e 2018: ${totalPopulationByQuery} pessoas`);
     } catch (e) {
         console.log(e.message)
     } finally {
